@@ -1,0 +1,26 @@
+{
+  "name": "@kohanajs/mod-auth-adapter-password",
+  "version": "1.4.0",
+  "description": "The Sign In with password Module for KohanaJS",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "jest --coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.com/kohanajs-adapters/stage1/auth-adapter.git"
+  },
+  "keywords": [
+    "KohanaJS"
+  ],
+  "author": "Kojin Nakana",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://gitlab.com/kohanajs-adapters/stage1/auth-adapter/issues"
+  },
+  "homepage": "https://gitlab.com/kohanajs-adapters/stage1/auth-adapter#readme",
+  "dependencies": {}
+}

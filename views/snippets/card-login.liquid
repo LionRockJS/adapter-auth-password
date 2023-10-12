@@ -1,0 +1,26 @@
+<div class="card">
+    <h3 class="card-header">{{ title | default: "Sign In Required" }}</h3>
+    <form class="card-body" action="/login" method="post">
+        <input type="hidden" name="destination" value="{{destination}}" />
+        <div class="form-group">
+            <div class="login-form-message">
+                {{message}}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="form-row">
+                <div class="col">
+                    <input type="text" class="form-control" name="username" placeholder="User Name" required/>
+                </div>
+                <div class="col">
+                    <input type="password" class="form-control" name="password" placeholder="Password" required/>
+                </div>
+            </div>
+        </div>
+        <div class="form-group text-right">
+            <button class="btn btn-primary" type="submit">Sign In</button>
+        </div>
+        <div>v1.00</div>
+    </form>
+</div>

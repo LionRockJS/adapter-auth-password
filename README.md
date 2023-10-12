@@ -1,0 +1,1 @@
+# KohanaJS Auth Adapters

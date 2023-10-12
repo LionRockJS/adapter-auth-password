@@ -1,0 +1,29 @@
+<div class="container">
+    <h1 class="display-3">Change password</h1>
+    <form action="/account/password/change" method="post">
+        <input type="hidden" name="destination" value="/account/password/changed" />
+        <div class="form-group">
+            <div>enter your existing password and new Password</div>
+        </div>
+
+        <div class="form-group">
+            {{ username }}
+        </div>
+
+        <div class="form-group">
+            <input type="password" class="form-control" name="old-password" placeholder="Old Password">
+        </div>
+
+        <div class="form-group">
+            <input type="password" class="form-control" name="new-password" placeholder="new Password">
+        </div>
+
+        <div class="form-group">
+            <input type="password" class="form-control" name="retype-password" placeholder="retype new Password">
+        </div>
+
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">Update my password</button>
+        </div>
+    </form>
+</div>

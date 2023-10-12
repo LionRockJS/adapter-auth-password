@@ -1,0 +1,5 @@
+type IdentifierPasswords implements IIdentifier{
+  name: String! @unique
+  hash: String!
+  belongsTo: Users
+}

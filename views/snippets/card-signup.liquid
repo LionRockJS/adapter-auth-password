@@ -1,0 +1,21 @@
+<div class="card">
+    <h3 class="card-header">Sign Up</h3>
+    <form class="card-body" autocomplete="off" action="{{ action | default: "/register" }}" method="post">
+        <div class="form-group">
+            <div class="form-row">
+                <div class="col">
+                    <input type="text" class="form-control" autocomplete="off" name="username" placeholder="User Name" required/>
+                </div>
+                <div class="col">
+                    <input type="password" class="form-control" autocomplete="new-password" name="password" placeholder="Password" required/>
+                </div>
+            </div>
+        </div>
+        <div class="form-group text-right">
+            <div class="btn note">
+                By signing up you agree to the Terms of Service.
+            </div>
+            <button class="btn btn-primary" type="submit">Sign up with user name and password</button>
+        </div>
+    </form>
+</div>
