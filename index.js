@@ -1,8 +1,15 @@
-require('kohanajs').addNodeModule(__dirname);
+import url from "node:url";
+const dirname = url.fileURLToPath(new URL('.', import.meta.url)).replace(/\/$/, '');
+export default {dirname}
 
-module.exports = {
-  ControllerAccountPassword: require('./classes/controller/AccountPassword'),
-  ControllerMixinAccountPassword: require('./classes/controller-mixin/AccountPassword'),
-  IdentifierPassword: require('./classes/identifier/Password'),
-  ModelIdentifierPassword: require('./classes/model/IdentifierPassword'),
+import ControllerAccountPassword from './classes/controller/AccountPassword.mjs';
+import ControllerMixinAccountPassword from './classes/controller-mixin/AccountPassword.mjs';
+import IdentifierPassword from './classes/identifier/Password.mjs';
+import ModelIdentifierPassword from './classes/model/IdentifierPassword.mjs';
+
+export {
+  ControllerAccountPassword,
+  ControllerMixinAccountPassword,
+  IdentifierPassword,
+  ModelIdentifierPassword,
 };

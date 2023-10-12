@@ -1,8 +1,8 @@
-const { KohanaJS } = require('kohanajs');
-const IdentifierPassword = require("../../../../classes/identifier/Password");
+import { Central } from '@lionrockjs/central';
+import IdentifierPassword from "../../../../classes/identifier/Password.mjs";
 
-module.exports = {
-  databasePath: `${KohanaJS.APP_PATH}/../db`,
+export default {
+  databasePath: `${Central.APP_PATH}/../db`,
   userDatabase: 'admin.sqlite',
   salt: 'thisislonglonglonglongtextover32bytes',
 

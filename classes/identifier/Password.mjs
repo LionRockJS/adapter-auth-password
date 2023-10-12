@@ -1,10 +1,10 @@
-const { KohanaJS, ORM } = require('kohanajs');
-const crypto = require('crypto');
+import crypto from 'node:crypto';
+import { Central } from '@lionrockjs/central';
+import { Identifier } from '@lionrockjs/mod-auth';
+import ModelIdentifierPassword from "../model/IdentifierPassword.mjs";
 
-const { Identifier}  = require('@kohanajs/mod-auth');
-
-class IdentifierPassword extends Identifier {
-  static Model = ORM.require('IdentifierPassword');
+export default class IdentifierPassword extends Identifier {
+  static Model = ModelIdentifierPassword;
 
   static isPostDataContainsIdentifierField(postData){
     return !!postData.password;
@@ -37,11 +37,11 @@ class IdentifierPassword extends Identifier {
   }
 
   static hash(userId, identifierName, plainTextPassword) {
-    const { salt } = KohanaJS.config.auth;
+    const { salt } = Central.config.auth;
     const hash = crypto.createHash('sha512');
     hash.update(userId + identifierName + plainTextPassword + salt);
     return `#${hash.digest('hex')}`;
   }
 }
 
-module.exports = IdentifierPassword;
+

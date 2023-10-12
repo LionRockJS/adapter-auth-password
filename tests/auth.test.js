@@ -1,20 +1,27 @@
-const { KohanaJS_Jest, KohanaJS, ORM } = require('kohanajs-jest');
-const results = KohanaJS_Jest.init({
-  DIR: __dirname,
-  CONFIGS: ['auth', 'register'],
-  PRELOAD: [['model/IdentifierPassword.js', require('../classes/model/IdentifierPassword')]],
-  DATABASES: ['admin.sqlite', 'session.sqlite'],
-});
-const db = results[0];
+import url from "node:url";
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url)).replace(/\/$/, '');
 
-//classes to test
-const { ControllerRegister, ControllerAuth, ControllerAccount } = require('@kohanajs/mod-auth');
-const IdentifierPassword = require('../classes/identifier/Password');
-const ControllerAccountPassword = require('../classes/controller/AccountPassword');
+import { Central, ORM } from '@lionrockjs/central';
+import { ControllerRegister, ControllerAuth, ControllerAccount } from '@lionrockjs/mod-auth';
+import Session from '@lionrockjs/mod-session';
+
+import IdentifierPassword from "../classes/identifier/Password.mjs";
+import ControllerAccountPassword from "../classes/controller/AccountPassword.mjs";
+import Database from 'better-sqlite3';
+
+const db = new Database(`${__dirname}/mockapp/db/admin.sqlite`);
 
 describe('password auth', () => {
+  beforeEach(async () => {
+    await Central.init({ EXE_PATH: `${__dirname}/mockapp`, modules: [Session] });
+    Central.classPath.set('model/IdentifierPassword.mjs', IdentifierPassword);
+  });
+
+  afterEach(async () => {
+  });
+
   test('KohanaJS setup', async () =>{
-    expect(KohanaJS.config.session.name).toBe('kohanajs-session');
+    expect(Central.config.session.name).toBe('kohanajs-session');
   })
 
   test('constructor', async () => {

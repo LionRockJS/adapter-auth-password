@@ -1,19 +1,18 @@
-const { ControllerMixin } = require('@kohanajs/core-mvc');
-const { ORM, ControllerMixinDatabase } = require('kohanajs');
-const { ControllerMixinMultipartForm } = require('@kohanajs/mod-form');
+import { Controller, ControllerMixin } from '@lionrockjs/mvc';
+import { ORM, ControllerMixinDatabase, ControllerMixinView } from '@lionrockjs/central';
+import { ControllerMixinMultipartForm } from '@lionrockjs/mod-form';
+import { HelperAuth, ControllerMixinAuth } from '@lionrockjs/mod-auth';
 
-const { HelperAuth, ControllerMixinAuth }  = require('@kohanajs/mod-auth');
-
-class ControllerMixinAccountPassword extends ControllerMixin {
+export default class ControllerMixinAccountPassword extends ControllerMixin {
   static USER = 'accountUser';
   static DATABASE_NAME = ControllerMixinAuth.DATABASE_NAME;
   static IDENTIFIER_DATABASE_NAME = ControllerMixinAuth.IDENTIFIER_DATABASE_NAME;
   static IDENTIFIER = 'accountPasswordIdentifier';
 
   static init(state) {
-    state.set(this.DATABASE_NAME, state.get(this.DATABASE_NAME) || 'admin');
-    state.set(this.IDENTIFIER_DATABASE_NAME, state.get(this.IDENTIFIER_DATABASE_NAME) || 'admin');
-    state.set(this.IDENTIFIER, state.get(this.IDENTIFIER) || require('../identifier/Password'));
+    if(!state.get(this.DATABASE_NAME))state.set(this.DATABASE_NAME, 'admin');
+    if(!state.get(this.IDENTIFIER_DATABASE_NAME))state.set(this.IDENTIFIER_DATABASE_NAME, 'admin');
+    if(!state.get(this.IDENTIFIER))state.set(this.IDENTIFIER, require('../identifier/Password'));
   }
 
   static async action_change_password_post(state) {
@@ -53,5 +52,3 @@ class ControllerMixinAccountPassword extends ControllerMixin {
     await ControllerMixinAuth.action_logout(state);
   }
 }
-
-module.exports = ControllerMixinAccountPassword;

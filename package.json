@@ -1,17 +1,32 @@
 {
-  "name": "@kohanajs/mod-auth-adapter-password",
-  "version": "1.4.0",
+  "type": "module",
+  "name": "@lionrockjs/adapter-auth-password",
+  "version": "1.0.0",
   "description": "The Sign In with password Module for KohanaJS",
   "main": "index.js",
   "directories": {
     "test": "tests"
   },
   "scripts": {
-    "test": "jest --coverage"
+    "test": "node --experimental-vm-modules ../../../node_modules/jest/bin/jest.js --coverage"
+  },
+  "jest": {
+    "verbose": true,
+    "transform": {},
+    "testMatch": [
+      "**/__tests__/**/*.[jt]s?(x)",
+      "**/?(*.)+(spec|test).[jt]s?(x)",
+      "**/?(*.)+(spec|test).mjs"
+    ],
+    "moduleFileExtensions": [
+      "js",
+      "jsx",
+      "mjs"
+    ]
   },
   "repository": {
     "type": "git",
-    "url": "git+https://gitlab.com/kohanajs-adapters/stage1/auth-adapter.git"
+    "url": "git+https://github.com/LionRockJS/adapter-auth-password.git"
   },
   "keywords": [
     "KohanaJS"
@@ -19,8 +34,8 @@
   "author": "Kojin Nakana",
   "license": "MIT",
   "bugs": {
-    "url": "https://gitlab.com/kohanajs-adapters/stage1/auth-adapter/issues"
+    "url": "https://github.com/LionRockJS/adapter-auth-password/issues"
   },
-  "homepage": "https://gitlab.com/kohanajs-adapters/stage1/auth-adapter#readme",
+  "homepage": "https://github.com/LionRockJS/adapter-auth-password#readme",
   "dependencies": {}
 }

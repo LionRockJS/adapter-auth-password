@@ -1,6 +1,6 @@
-const {ORM} = require('kohanajs');
+import { ORM } from '@lionrockjs/central';
 
-class IdentifierPassword extends ORM{
+export default class IdentifierPassword extends ORM{
   user_id = null;
   name = null;
   hash = null;
@@ -16,5 +16,3 @@ class IdentifierPassword extends ORM{
     ["user_id", "User"]
   ]);
 }
-
-module.exports = IdentifierPassword;

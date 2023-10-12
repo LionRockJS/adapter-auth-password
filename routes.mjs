@@ -1,4 +1,4 @@
-const { RouteList } = require('@kohanajs/mod-route');
+import { RouteList } from '@lionrockjs/central';
 
 RouteList.add('/account/password/change', 'controller/AccountPassword');
 RouteList.add('/account/password/change', 'controller/AccountPassword', 'change_password_post', 'POST');
