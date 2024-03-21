@@ -1,15 +1,16 @@
 import url from "node:url";
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url)).replace(/\/$/, '');
 
-import { Central, ORM } from '@lionrockjs/central';
+import { Central, ORM, ControllerMixinDatabase } from '@lionrockjs/central';
 import { ControllerRegister, ControllerAuth, ControllerAccount } from '@lionrockjs/mod-auth';
+import { DatabaseAdapterBetterSQLite3, ORMAdapterSQLite } from '@lionrockjs/adapter-database-better-sqlite3';
 import Session from '@lionrockjs/mod-session';
 
 import IdentifierPassword from "../classes/identifier/Password.mjs";
+import ModelIdentifierPassword from "../classes/model/IdentifierPassword.mjs";
 import ControllerAccountPassword from "../classes/controller/AccountPassword.mjs";
-import Database from 'better-sqlite3';
-
-const db = new Database(`${__dirname}/mockapp/db/admin.sqlite`);
+ORM.defaultAdapter = ORMAdapterSQLite;
+ControllerMixinDatabase.DEFAULT_DATABASE_ADAPTER = DatabaseAdapterBetterSQLite3;
 
 describe('password auth', () => {
   beforeEach(async () => {
@@ -37,11 +38,13 @@ describe('password auth', () => {
     const c = new ControllerRegister({ headers: {}, body: 'username=alice&password=hello', cookies: {} });
     await c.execute('register_post');
     expect(c.state.get('full_action_name')).toBe('action_register_post');
+    console.log(c.state);
 
     const user = c.state.get('user');
     expect(user.person.first_name).toBe('alice');
 
-    const identifier = await ORM.readBy(IdentifierPassword.Model, 'name', ['alice'], {database: db})
+    const database = c.state.get(ControllerMixinDatabase.DATABASES).get('admin');
+    const identifier = await ORM.readBy(ModelIdentifierPassword, 'name', ['alice'], {database});
     expect(identifier.name).toBe('alice');
     expect(identifier.hash).toBe(IdentifierPassword.hash(user.id, 'alice', 'hello'));
   });
@@ -53,7 +56,8 @@ describe('password auth', () => {
     const user = c.state.get('user');
     expect(user.person.first_name).toBe('Alice Lee');
 
-    const identifier = await ORM.readBy(IdentifierPassword.Model, 'name', ['alice2'], {database: db})
+    const database = c.state.get(ControllerMixinDatabase.DATABASES).get('admin');
+    const identifier = await ORM.readBy(IdentifierPassword.Model, 'name', ['alice2'], {database})
     expect(identifier.name).toBe('alice2');
     expect(identifier.hash).toBe(IdentifierPassword.hash(user.id, 'alice2', 'hello'));
   });
@@ -61,7 +65,8 @@ describe('password auth', () => {
   test('register duplicate username', async () =>{
     const c = new ControllerRegister({ headers: {}, body: 'username=bob&password=hello', cookies: {} });
     await c.execute('register_post');
-    const identifier = await ORM.readBy(IdentifierPassword.Model, 'name', ['bob'], {database: db})
+    const database = c.state.get(ControllerMixinDatabase.DATABASES).get('admin');
+    const identifier = await ORM.readBy(IdentifierPassword.Model, 'name', ['bob'], {database})
     expect(identifier.name).toBe('bob');
 
     const c2 = new ControllerRegister({ headers: {}, body: 'username=bob&password=hello', cookies: {} });
@@ -86,7 +91,8 @@ describe('password auth', () => {
   test('login', async ()=>{
     const c = new ControllerRegister({ headers: {}, body: 'username=charlie&password=wow', cookies: {} });
     await c.execute('register_post');
-    const identifier = await ORM.readBy(IdentifierPassword.Model, 'name', ['charlie'], {database: db})
+    const database = c.state.get(ControllerMixinDatabase.DATABASES).get('admin');
+    const identifier = await ORM.readBy(IdentifierPassword.Model, 'name', ['charlie'], {database})
 
     const c2 = new ControllerAuth({ headers: {}, body: 'username=charlie&password=wow', cookies: {} });
     await c2.execute('login_post');
@@ -150,7 +156,8 @@ describe('password auth', () => {
     expect(c5.headers.location).toBe('/account/password/changed');
     expect(c5.status).toBe(302);
 
-    const identifier = await ORM.readBy(IdentifierPassword.Model, 'name', ['eve'], {database: db})
+    const database = c.state.get(ControllerMixinDatabase.DATABASES).get('admin');
+    const identifier = await ORM.readBy(IdentifierPassword.Model, 'name', ['eve'], {database})
     expect(IdentifierPassword.hash(identifier.user_id, 'eve', 'somesome')).toBe(identifier.hash);
 
     //retype password match

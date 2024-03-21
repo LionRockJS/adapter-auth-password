@@ -26,7 +26,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/LionRockJS/adapter-auth-password.git"
+    "url": "git+https://github.com/LionRockJS/adapter-auth.git"
   },
   "keywords": [
     "KohanaJS"
@@ -34,8 +34,8 @@
   "author": "Kojin Nakana",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/LionRockJS/adapter-auth-password/issues"
+    "url": "https://github.com/LionRockJS/adapter-auth/issues"
   },
-  "homepage": "https://github.com/LionRockJS/adapter-auth-password#readme",
+  "homepage": "https://github.com/LionRockJS/adapter-auth#readme",
   "dependencies": {}
 }
