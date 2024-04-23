@@ -25,7 +25,7 @@ export default class ControllerMixinAccountPassword extends ControllerMixin {
     if(newPassword === oldPassword)throw new Error('New password is same as old password');
 
     const database = state.get(ControllerMixinDatabase.DATABASES).get(state.get(this.IDENTIFIER_DATABASE_NAME));
-    const { user_id } = state.get(ControllerMixin.CLIENT).request.session;
+    const { user_id } = state.get(Controller.STATE_REQUEST).session;
 
     const identifierInstances = await ORM.readBy(Identifier.Model, 'user_id', [user_id], { database , asArray:true});
 
