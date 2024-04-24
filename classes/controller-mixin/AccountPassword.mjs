@@ -2,6 +2,7 @@ import { Controller, ControllerMixin } from '@lionrockjs/mvc';
 import { ORM, ControllerMixinDatabase, ControllerMixinView } from '@lionrockjs/central';
 import { ControllerMixinMultipartForm } from '@lionrockjs/mod-form';
 import { HelperAuth, ControllerMixinAuth } from '@lionrockjs/mod-auth';
+import IdentifierPassword from '../identifier/Password';
 
 export default class ControllerMixinAccountPassword extends ControllerMixin {
   static USER = 'accountUser';
@@ -12,7 +13,7 @@ export default class ControllerMixinAccountPassword extends ControllerMixin {
   static init(state) {
     if(!state.get(this.DATABASE_NAME))state.set(this.DATABASE_NAME, 'admin');
     if(!state.get(this.IDENTIFIER_DATABASE_NAME))state.set(this.IDENTIFIER_DATABASE_NAME, 'admin');
-    if(!state.get(this.IDENTIFIER))state.set(this.IDENTIFIER, require('../identifier/Password'));
+    if(!state.get(this.IDENTIFIER))state.set(this.IDENTIFIER, IdentifierPassword);
   }
 
   static async action_change_password_post(state) {

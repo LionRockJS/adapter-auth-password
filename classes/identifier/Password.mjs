@@ -2,7 +2,8 @@ import crypto from 'node:crypto';
 import {Central, ORM} from '@lionrockjs/central';
 import { Identifier } from '@lionrockjs/mod-auth';
 
-const ModelIdentifierPassword = await ORM.import('IdentifierPassword');
+import DefaultModelIdentifierPassword from '../model/IdentifierPassword.mjs';
+const ModelIdentifierPassword = await ORM.import('IdentifierPassword', DefaultModelIdentifierPassword);
 
 export default class IdentifierPassword extends Identifier {
   static Model = ModelIdentifierPassword;

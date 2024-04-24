@@ -1,28 +1,46 @@
 import url from "node:url";
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url)).replace(/\/$/, '');
 
-import { Central, ORM, ControllerMixinDatabase } from '@lionrockjs/central';
-import { ControllerRegister, ControllerAuth, ControllerAccount } from '@lionrockjs/mod-auth';
+import { Controller } from '@lionrockjs/mvc';
+import { Central, ORM, ControllerMixinDatabase, HelperCache } from '@lionrockjs/central';
+import ModelIdentifierPassword from "../classes/model/IdentifierPassword.mjs";
+
+import { ControllerRegister, ControllerAuth, ControllerAccount, ModelRole, ModelUser } from '@lionrockjs/mod-auth';
 import { DatabaseAdapterBetterSQLite3, ORMAdapterSQLite } from '@lionrockjs/adapter-database-better-sqlite3';
 import Session from '@lionrockjs/mod-session';
 
 import IdentifierPassword from "../classes/identifier/Password.mjs";
-import ModelIdentifierPassword from "../classes/model/IdentifierPassword.mjs";
+
 import ControllerAccountPassword from "../classes/controller/AccountPassword.mjs";
+import ControllerMixinAuth from "@lionrockjs/mod-auth/classes/controller-mixin/Auth.mjs";
+import path from "node:path";
+import fs from "node:fs";
 ORM.defaultAdapter = ORMAdapterSQLite;
 ControllerMixinDatabase.DEFAULT_DATABASE_ADAPTER = DatabaseAdapterBetterSQLite3;
 
 describe('password auth', () => {
+  const dbPath = path.normalize(`${__dirname}/mockapp/db/admin.sqlite`);
+  if (fs.existsSync(dbPath))fs.unlinkSync(dbPath);
+  fs.copyFileSync(`${__dirname}/mockapp/defaultDB/admin.sqlite`, dbPath);
+
+  const dbPath2 = path.normalize(`${__dirname}/mockapp/db/session.sqlite`);
+  if (fs.existsSync(dbPath2))fs.unlinkSync(dbPath2);
+  fs.copyFileSync(`${__dirname}/mockapp/defaultDB/session.sqlite`, dbPath2);
+
   beforeEach(async () => {
     await Central.init({ EXE_PATH: `${__dirname}/mockapp`, modules: [Session] });
-    Central.classPath.set('model/IdentifierPassword.mjs', IdentifierPassword);
+    HelperCache.classPath.set('model/IdentifierPassword.mjs', ModelIdentifierPassword);
+    HelperCache.classPath.set('model/Role.mjs', ModelRole);
+    HelperCache.classPath.set('model/User.mjs', ModelUser);
+    //copy database;
   });
 
   afterEach(async () => {
+
   });
 
-  test('KohanaJS setup', async () =>{
-    expect(Central.config.session.name).toBe('kohanajs-session');
+  test('setup', async () =>{
+    expect(Central.config.session.name).toBe('lionrock-session');
   })
 
   test('constructor', async () => {
@@ -31,16 +49,15 @@ describe('password auth', () => {
     if (r.status === 500)console.log(c.error);
     expect(r.status).toBe(200);
     expect(c.error).toBe(null);
-    expect(c.state.get('full_action_name')).toBe('action_index');
+    expect(c.state.get(Controller.STATE_FULL_ACTION_NAME)).toBe('action_index');
   });
 
   test('register', async () =>{
     const c = new ControllerRegister({ headers: {}, body: 'username=alice&password=hello', cookies: {} });
-    await c.execute('register_post');
-    expect(c.state.get('full_action_name')).toBe('action_register_post');
-    console.log(c.state);
+    const res = await c.execute('register_post');
+    expect(c.state.get(Controller.STATE_FULL_ACTION_NAME)).toBe('action_register_post');
 
-    const user = c.state.get('user');
+    const user = c.state.get(ControllerMixinAuth.USER);
     expect(user.person.first_name).toBe('alice');
 
     const database = c.state.get(ControllerMixinDatabase.DATABASES).get('admin');
@@ -64,15 +81,16 @@ describe('password auth', () => {
 
   test('register duplicate username', async () =>{
     const c = new ControllerRegister({ headers: {}, body: 'username=bob&password=hello', cookies: {} });
-    await c.execute('register_post');
+    const res = await c.execute('register_post');
+    expect(res.status).toBe(302);
     const database = c.state.get(ControllerMixinDatabase.DATABASES).get('admin');
     const identifier = await ORM.readBy(IdentifierPassword.Model, 'name', ['bob'], {database})
     expect(identifier.name).toBe('bob');
 
     const c2 = new ControllerRegister({ headers: {}, body: 'username=bob&password=hello', cookies: {} });
-    await c2.execute('register_post');
-    expect(c2.status).toBe(500);
-    expect(c2.error.message).toBe("User Name bob already in use.");
+    const res2 = await c2.execute('register_post');
+    expect(res2.status).toBe(500);
+    expect(c2.error.message).toBe("User Name bob already registered.");
   });
 
   test('register with retype password', async () =>{
@@ -83,55 +101,61 @@ describe('password auth', () => {
 
   test('register retype password mismatch', async () =>{
     const c = new ControllerRegister({ headers: {}, body: 'username=bob3&password=hello&retype-password=helo', cookies: {} });
-    await c.execute('register_post');
-    expect(c.status).toBe(500);
+    const res = await c.execute('register_post');
+    expect(res.status).toBe(500);
     expect(c.error.message).toBe("Retype password mismatch");
   });
 
   test('login', async ()=>{
     const c = new ControllerRegister({ headers: {}, body: 'username=charlie&password=wow', cookies: {} });
-    await c.execute('register_post');
+    const res = await c.execute('register_post');
+    expect(res.status).toBe(302);
     const database = c.state.get(ControllerMixinDatabase.DATABASES).get('admin');
     const identifier = await ORM.readBy(IdentifierPassword.Model, 'name', ['charlie'], {database})
 
     const c2 = new ControllerAuth({ headers: {}, body: 'username=charlie&password=wow', cookies: {} });
-    await c2.execute('login_post');
-    expect(c2.request.session.logged_in).toBe(true);
-    expect(c2.request.session.user_id).toBe(identifier.user_id);
+    const res2 = await c2.execute('login_post');
+    const request = c2.state.get(Controller.STATE_REQUEST);
+    expect(request.session.logged_in).toBe(true);
+    expect(request.session.user_id).toBe(identifier.user_id);
   })
 
   test('Login Fail', async ()=>{
     const c = new ControllerRegister({ headers: {}, body: 'username=charlie2&password=wow', cookies: {} });
-    await c.execute('register_post');
+    const res = await c.execute('register_post');
+    expect(res.status).toBe(302);
 
     const c2 = new ControllerAuth({ headers: {}, body: 'username=charlie2&password=boom', cookies: {} });
-    await c2.execute('login_post');
-    expect(c2.status).toBe(500);
+    const res2 = await c2.execute('login_post');
+    expect(res2.status).toBe(500);
     expect(c2.error.message).toBe("Password Mismatch");
   })
 
   test('Login Fail - no user name', async ()=>{
     const c = new ControllerAuth({ headers: {}, body: 'username=charlie99&password=boom', cookies: {} });
-    await c.execute('login_post');
-    expect(c.status).toBe(500);
+    const res = await c.execute('login_post');
+    expect(res.status).toBe(500);
     expect(c.error.message).toBe("Identifier not found");
   })
 
   test('Logout', async () => {
     const c = new ControllerRegister({ headers: {}, body: 'username=lucky&password=hello', cookies: {} });
-    await c.execute('register_post');
+    const res = await c.execute('register_post');
+    expect(res.status).toBe(302);
+
     const c2 = new ControllerAuth( {headers: {}, cookies: {}} );
-    await c2.execute('logout');
-    const session = c2.request.session;
+    const res2 = await c2.execute('logout');
+    expect(res2.status).toBe(200);
+    const session = c2.state.get(Controller.STATE_REQUEST).session;
     expect(session.logged_in).toBe(false);
     expect(session.user_id).toBe(null);
   })
 
   test('change password without login', async ()=>{
     const c = new ControllerAccountPassword({raw:{url:'test'}, headers: {}, body: '', cookies: {}, session: {} });
-    await c.execute();
-    expect(c.status).toBe(302);
-    expect(c.headers.location).toBe('/login?cp=test');
+    const res = await c.execute();
+    expect(res.status).toBe(302);
+    expect(res.headers.location).toBe('/login?cp=test');
   })
 
   test('change password', async ()=>{
@@ -144,17 +168,17 @@ describe('password auth', () => {
     const c3 = new ControllerAuth({ headers: {}, body: 'username=eve&password=hello', cookies: {} });
     await c3.execute('login_post');
 
-    const c4 = new ControllerAccount({ headers: {}, cookies: {}, session: c3.request.session })
+    const c4 = new ControllerAccount({ headers: {}, cookies: {}, session: c3.state.get(Controller.STATE_REQUEST).session })
     await c4.execute();
-    const session = c4.request.session;
+    const session = c4.state.get(Controller.STATE_REQUEST).session;
 
     const c5a = new ControllerAccount({ headers: {}, cookies: {}, session })
     await c5a.execute();
 
     const c5 = new ControllerAccountPassword({ headers: {}, body: 'old-password=hello&new-password=somesome', cookies: {}, session });
-    await c5.execute('change_password_post');
-    expect(c5.headers.location).toBe('/account/password/changed');
-    expect(c5.status).toBe(302);
+    const res5 = await c5.execute('change_password_post');
+    expect(res5.headers.location).toBe('/account/password/changed');
+    expect(res5.status).toBe(302);
 
     const database = c.state.get(ControllerMixinDatabase.DATABASES).get('admin');
     const identifier = await ORM.readBy(IdentifierPassword.Model, 'name', ['eve'], {database})
@@ -162,39 +186,39 @@ describe('password auth', () => {
 
     //retype password match
     const c6 = new ControllerAccountPassword({ headers: {}, body: 'old-password=somesome&new-password=hello&retype-password=hello', cookies: {}, session });
-    await c6.execute('change_password_post');
-    expect(c6.headers.location).toBe('/account/password/changed');
-    expect(c6.status).toBe(302);
+    const res6 = await c6.execute('change_password_post');
+    expect(res6.headers.location).toBe('/account/password/changed');
+    expect(res6.status).toBe(302);
 
     //retype password not match
     const c7 = new ControllerAccountPassword({ headers: {}, body: 'old-password=hello&new-password=somesome&retype-password=some', cookies: {}, session });
-    await c7.execute('change_password_post');
-    expect(c7.status).toBe(500);
+    const res7 = await c7.execute('change_password_post');
+    expect(res7.status).toBe(500);
+    console.log(res7);
     expect(c7.error.message).toBe('Retype password mismatch');
 
     //identifier not found
     const c8 = new ControllerAccountPassword({ headers: {}, body: 'old-password=hello&new-password=somesome', cookies: {}, session : {...session, user_id: 8756} });
-    await c8.execute('change_password_post');
-    expect(c8.status).toBe(500);
+    const res8 = await c8.execute('change_password_post');
+    expect(res8.status).toBe(500);
     expect(c8.error.message).toBe('No Password Identifier associate to this user.');
 
     //old password mismatch
     const c9 = new ControllerAccountPassword({ headers: {}, body: 'old-password=hehe&new-password=somesome', cookies: {}, session });
-    await c9.execute('change_password_post');
-    expect(c9.status).toBe(500);
+    const res9 = await c9.execute('change_password_post');
+    expect(res9.status).toBe(500);
     expect(c9.error.message).toBe('Old Password Mismatch');
 
     //new password same as old password
     const c9b = new ControllerAccountPassword({ headers: {}, body: 'old-password=hello&new-password=hello', cookies: {}, session });
-    await c9b.execute('change_password_post');
-    expect(c9b.status).toBe(500);
+    const res9b = await c9b.execute('change_password_post');
+    expect(res9b.status).toBe(500);
     expect(c9b.error.message).toBe('New password is same as old password');
 
     //password change done
     const c10 = new ControllerAccountPassword({ headers: {}, body: 'old-password=hehe&new-password=somesome', cookies: {}, session });
     await c10.execute('change_password_done');
-
-    expect(c10.request.session.logged_in).toBe(false);
+    expect(c10.state.get(Controller.STATE_REQUEST).session.logged_in).toBe(false);
   });
 
 });
