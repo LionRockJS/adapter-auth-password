@@ -20,7 +20,7 @@ export default class ControllerAccountPassword extends ControllerAccount {
   async action_index(){
     const request = this.state.get(Controller.STATE_REQUEST);
 
-    ControllerMixinView.setTemplate('templates/account/change-password/form', {
+    ControllerMixinView.setTemplate(this.state, 'templates/account/change-password/form', {
       user_full_name: request.session.user_meta.full_name,
       user_id: request.session.user_id,
       user_role: request.session.roles.join(","),
@@ -32,6 +32,6 @@ export default class ControllerAccountPassword extends ControllerAccount {
   }
 
   async action_change_password_done(){
-    ControllerMixinView.setTemplate('templates/account/change-password/submit')
+    ControllerMixinView.setTemplate(this.state, 'templates/account/change-password/submit')
   }
 }

@@ -2,7 +2,7 @@ import { Controller, ControllerMixin } from '@lionrockjs/mvc';
 import { ORM, ControllerMixinDatabase, ControllerMixinView } from '@lionrockjs/central';
 import { ControllerMixinMultipartForm } from '@lionrockjs/mod-form';
 import { HelperAuth, ControllerMixinAuth } from '@lionrockjs/mod-auth';
-import IdentifierPassword from '../identifier/Password';
+import IdentifierPassword from '../identifier/Password.mjs';
 
 export default class ControllerMixinAccountPassword extends ControllerMixin {
   static USER = 'accountUser';
