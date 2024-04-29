@@ -2,7 +2,7 @@ import url from "node:url";
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url)).replace(/\/$/, '');
 
 import { Controller } from '@lionrockjs/mvc';
-import { Central, ORM, ControllerMixinDatabase, HelperCache } from '@lionrockjs/central';
+import { Central, ORM, ControllerMixinDatabase } from '@lionrockjs/central';
 import ModelIdentifierPassword from "../classes/model/IdentifierPassword.mjs";
 
 import { ControllerRegister, ControllerAuth, ControllerAccount, ModelRole, ModelUser } from '@lionrockjs/mod-auth';
@@ -29,9 +29,9 @@ describe('password auth', () => {
 
   beforeEach(async () => {
     await Central.init({ EXE_PATH: `${__dirname}/mockapp`, modules: [Session] });
-    HelperCache.classPath.set('model/IdentifierPassword.mjs', ModelIdentifierPassword);
-    HelperCache.classPath.set('model/Role.mjs', ModelRole);
-    HelperCache.classPath.set('model/User.mjs', ModelUser);
+    Central.classPath.set('model/IdentifierPassword.mjs', ModelIdentifierPassword);
+    Central.classPath.set('model/Role.mjs', ModelRole);
+    Central.classPath.set('model/User.mjs', ModelUser);
     //copy database;
   });
 
