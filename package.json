@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@lionrockjs/adapter-auth-password",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "The Sign In with password Module for KohanaJS",
   "main": "index.js",
   "directories": {
