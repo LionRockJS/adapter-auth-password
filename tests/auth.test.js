@@ -16,7 +16,7 @@ import ControllerMixinAuth from "@lionrockjs/mod-auth/classes/controller-mixin/A
 import path from "node:path";
 import fs from "node:fs";
 ORM.defaultAdapter = ORMAdapterSQLite;
-ControllerMixinDatabase.DEFAULT_DATABASE_ADAPTER = DatabaseAdapterBetterSQLite3;
+ControllerMixinDatabase.defaultAdapter = DatabaseAdapterBetterSQLite3;
 
 describe('password auth', () => {
   const dbPath = path.normalize(`${__dirname}/mockapp/db/admin.sqlite`);
