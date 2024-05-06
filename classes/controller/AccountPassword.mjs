@@ -1,7 +1,3 @@
-/***
- override ControllerAccount in @kohanajs/mod-auth
- ***/
-
 import { Controller } from '@lionrockjs/mvc';
 import { ControllerMixinView } from '@lionrockjs/central';
 import { ControllerAccount } from '@lionrockjs/mod-auth';
