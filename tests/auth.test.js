@@ -2,12 +2,12 @@ import url from "node:url";
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url)).replace(/\/$/, '');
 
 import { Controller } from '@lionrockjs/mvc';
-import { Central, ORM, ControllerMixinDatabase } from '@lionrockjs/central';
+import { Central, Model, ORM, ControllerMixinDatabase } from '@lionrockjs/central';
 import ModelIdentifierPassword from "../classes/model/IdentifierPassword.mjs";
 
 import { ControllerRegister, ControllerAuth, ControllerAccount, ModelRole, ModelUser } from '@lionrockjs/mod-auth';
 import { DatabaseAdapterBetterSQLite3, ORMAdapterSQLite } from '@lionrockjs/adapter-database-better-sqlite3';
-import Session from '@lionrockjs/mod-session';
+import Session from '@lionrockjs/mixin-session';
 
 import IdentifierPassword from "../classes/identifier/Password.mjs";
 
@@ -15,7 +15,8 @@ import ControllerAccountPassword from "../classes/controller/AccountPassword.mjs
 import ControllerMixinAuth from "@lionrockjs/mod-auth/classes/controller-mixin/Auth.mjs";
 import path from "node:path";
 import fs from "node:fs";
-ORM.defaultAdapter = ORMAdapterSQLite;
+
+Model.defaultAdapter = ORMAdapterSQLite;
 ControllerMixinDatabase.defaultAdapter = DatabaseAdapterBetterSQLite3;
 
 describe('password auth', () => {
@@ -54,7 +55,7 @@ describe('password auth', () => {
 
   test('register', async () =>{
     const c = new ControllerRegister({ headers: {}, body: 'username=alice&password=hello', cookies: {} });
-    const res = await c.execute('register_post');
+    await c.execute('register_post');
     expect(c.state.get(Controller.STATE_FULL_ACTION_NAME)).toBe('action_register_post');
 
     const user = c.state.get(ControllerMixinAuth.USER);
@@ -194,7 +195,6 @@ describe('password auth', () => {
     const c7 = new ControllerAccountPassword({ headers: {}, body: 'old-password=hello&new-password=somesome&retype-password=some', cookies: {}, session });
     const res7 = await c7.execute('change_password_post');
     expect(res7.status).toBe(500);
-    console.log(res7);
     expect(c7.error.message).toBe('Retype password mismatch');
 
     //identifier not found
