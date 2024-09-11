@@ -39,7 +39,7 @@ export default class IdentifierPassword extends Identifier {
   }
 
   static hash(userId, identifierName, plainTextPassword) {
-    const { salt } = Central.config.auth;
+    const salt = Central.adapter.process().env.AUTH_SALT;
     const hash = crypto.createHash('sha512');
     hash.update(userId + identifierName + plainTextPassword + salt);
     return `#${hash.digest('hex')}`;

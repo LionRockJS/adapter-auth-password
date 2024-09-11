@@ -11,6 +11,10 @@ export default {
   requireActivate: false,
   rootRole: 'root',
 
+  databaseMap: new Map([
+    ['admin', `${Central.APP_PATH}/../db/admin.sqlite`]
+  ]),
+
   identifiers: [
     IdentifierPassword
   ]

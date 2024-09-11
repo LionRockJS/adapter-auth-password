@@ -1,11 +1,12 @@
+import path from "node:path";
+import fs from "node:fs";
 import url from "node:url";
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url)).replace(/\/$/, '');
 
-import { Controller } from '@lionrockjs/mvc';
-import { Central, Model, ORM, ControllerMixinDatabase } from '@lionrockjs/central';
+import { Controller, Central, Model, ORM, ControllerMixinDatabase } from '@lionrockjs/central';
 import ModelIdentifierPassword from "../classes/model/IdentifierPassword.mjs";
 
-import { ControllerRegister, ControllerAuth, ControllerAccount, ModelRole, ModelUser } from '@lionrockjs/mod-auth';
+import ModAuth, { ControllerRegister, ControllerAuth, ControllerAccount, ModelRole, ModelUser } from '@lionrockjs/mod-auth';
 import { DatabaseAdapterBetterSQLite3, ORMAdapterSQLite } from '@lionrockjs/adapter-database-better-sqlite3';
 import Session from '@lionrockjs/mixin-session';
 
@@ -13,8 +14,6 @@ import IdentifierPassword from "../classes/identifier/Password.mjs";
 
 import ControllerAccountPassword from "../classes/controller/AccountPassword.mjs";
 import ControllerMixinAuth from "@lionrockjs/mod-auth/classes/controller-mixin/Auth.mjs";
-import path from "node:path";
-import fs from "node:fs";
 
 Model.defaultAdapter = ORMAdapterSQLite;
 ControllerMixinDatabase.defaultAdapter = DatabaseAdapterBetterSQLite3;
@@ -29,7 +28,8 @@ describe('password auth', () => {
   fs.copyFileSync(`${__dirname}/mockapp/defaultDB/session.sqlite`, dbPath2);
 
   beforeEach(async () => {
-    await Central.init({ EXE_PATH: `${__dirname}/mockapp`, modules: [Session] });
+    await Central.init({ EXE_PATH: `${__dirname}/mockapp`, modules: [Session, ModAuth] });
+
     Central.classPath.set('model/IdentifierPassword.mjs', ModelIdentifierPassword);
     Central.classPath.set('model/Role.mjs', ModelRole);
     Central.classPath.set('model/User.mjs', ModelUser);
@@ -83,6 +83,7 @@ describe('password auth', () => {
   test('register duplicate username', async () =>{
     const c = new ControllerRegister({ headers: {}, body: 'username=bob&password=hello', cookies: {} });
     const res = await c.execute('register_post');
+    if (res.status === 500)console.error(c.error);
     expect(res.status).toBe(302);
     const database = c.state.get(ControllerMixinDatabase.DATABASES).get('admin');
     const identifier = await ORM.readBy(IdentifierPassword.Model, 'name', ['bob'], {database})
