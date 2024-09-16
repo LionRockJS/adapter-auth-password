@@ -1,4 +1,3 @@
-import crypto from 'node:crypto';
 import {Central, ORM} from '@lionrockjs/central';
 import { Identifier } from '@lionrockjs/mod-auth';
 
@@ -20,15 +19,17 @@ export default class IdentifierPassword extends Identifier {
 
   static async registerFilter(identifier, postData) {
     IdentifierPassword.matchRetypePassword(postData.password, postData['retype-password']);
-
+    const hash = await IdentifierPassword.hash(identifier.user_id, identifier.name, postData.password);
     return {
-      hash: await IdentifierPassword.hash(identifier.user_id, identifier.name, postData.password),
+      hash,
     };
   }
 
   static async loginFilter(identifier, postData, state) {
-    const hash = await IdentifierPassword.hash(identifier.user_id, identifier.name, postData.password);
-    if (hash.substring(1) !== identifier.hash.substring(1)) throw new Error('Password Mismatch');
+    const salt = Central.adapter.process().env.AUTH_SALT;
+    const plainTextPassword = postData.password;
+    const text = identifier.user_id + identifier.name + plainTextPassword + salt;
+    if(await argon2.verify(identifier.hash, text) === false) throw new Error('Password Mismatch');
     return {};
   }
 
@@ -43,12 +44,6 @@ export default class IdentifierPassword extends Identifier {
   static async hash(userId, identifierName, plainTextPassword) {
     const salt = Central.adapter.process().env.AUTH_SALT;
     const digest = await argon2.hash(userId + identifierName + plainTextPassword + salt);
-    return `#${digest}`;
-  }
-
-  static async verify(hash, userId, identifierName, plainTextPassword){
-    const salt = Central.adapter.process().env.AUTH_SALT;
-    const text = userId + identifierName + plainTextPassword + salt;
-    return await argon2.verify(hash, text);
+    return `${digest}`;
   }
 }

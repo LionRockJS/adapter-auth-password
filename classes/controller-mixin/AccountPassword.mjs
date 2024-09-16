@@ -36,13 +36,20 @@ export default class ControllerMixinAccountPassword extends ControllerMixin {
     }
 
     //verify old password hash;
-    identifierInstances.forEach(it =>{
-      if (it.hash !== Identifier.hash(user_id, it.name, oldPassword)) throw new Error('Old Password Mismatch');
-    })
+    await Promise.all(
+      identifierInstances.map(async it =>{
+        try{
+          await Identifier.loginFilter(it, {password: oldPassword}, state);
+        }catch(e){
+          throw new Error('Old Password Mismatch');
+        }
+      })
+    )
+
 
     //update identifier record
     await Promise.all(identifierInstances.map(async it => {
-      it.hash = Identifier.hash(user_id, it.name, newPassword);
+      it.hash = await Identifier.hash(user_id, it.name, newPassword);
       await it.write();
     }));
 

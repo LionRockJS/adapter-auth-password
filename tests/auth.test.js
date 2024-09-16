@@ -14,6 +14,7 @@ import IdentifierPassword from "../classes/identifier/Password.mjs";
 
 import ControllerAccountPassword from "../classes/controller/AccountPassword.mjs";
 import ControllerMixinAuth from "@lionrockjs/mod-auth/classes/controller-mixin/Auth.mjs";
+import argon2 from "argon2";
 
 Model.defaultAdapter = ORMAdapterSQLite;
 ControllerMixinDatabase.defaultAdapter = DatabaseAdapterBetterSQLite3;
@@ -60,7 +61,8 @@ describe('password auth', () => {
   })
 
   test('register', async () =>{
-    const c = new ControllerRegister({ headers: {}, body: 'username=alice&password=hello', cookies: {} });
+    const password = 'hello';
+    const c = new ControllerRegister({ headers: {}, body: 'username=alice&password='+password, cookies: {} });
     await c.execute('register_post');
     expect(c.state.get(Controller.STATE_FULL_ACTION_NAME)).toBe('action_register_post');
 
@@ -69,10 +71,10 @@ describe('password auth', () => {
 
     const database = c.state.get(ControllerMixinDatabase.DATABASES).get('admin');
     const identifier = await ORM.readBy(ModelIdentifierPassword, 'name', ['alice'], {database});
-    const hash = await IdentifierPassword.hash(user.id, 'alice', 'hello');
-    console.log(identifier, hash);
     expect(identifier.name).toBe('alice');
-    expect(identifier.hash).toBe(hash);
+
+    const plaintext = identifier.user_id + identifier.name + password + Central.adapter.process().env.AUTH_SALT;
+    expect(await argon2.verify(identifier.hash, plaintext)).toBe(true);
   });
 
   test('register with first name', async () =>{
@@ -85,7 +87,8 @@ describe('password auth', () => {
     const database = c.state.get(ControllerMixinDatabase.DATABASES).get('admin');
     const identifier = await ORM.readBy(IdentifierPassword.Model, 'name', ['alice2'], {database})
     expect(identifier.name).toBe('alice2');
-    expect(identifier.hash).toBe(IdentifierPassword.hash(user.id, 'alice2', 'hello'));
+    const verify = await argon2.verify(identifier.hash, identifier.user_id + identifier.name + 'hello' + Central.adapter.process().env.AUTH_SALT);
+    expect(verify).toBe(true);
   });
 
   test('register duplicate username', async () =>{
@@ -187,12 +190,15 @@ describe('password auth', () => {
 
     const c5 = new ControllerAccountPassword({ headers: {}, body: 'old-password=hello&new-password=somesome', cookies: {}, session });
     const res5 = await c5.execute('change_password_post');
-    expect(res5.headers.location).toBe('/account/password/changed');
     expect(res5.status).toBe(302);
+    expect(res5.headers.location).toBe('/account/password/changed');
+
 
     const database = c.state.get(ControllerMixinDatabase.DATABASES).get('admin');
     const identifier = await ORM.readBy(IdentifierPassword.Model, 'name', ['eve'], {database})
-    expect(IdentifierPassword.hash(identifier.user_id, 'eve', 'somesome')).toBe(identifier.hash);
+    console.log(identifier.hash);
+    const verify = await argon2.verify(identifier.hash, identifier.user_id + identifier.name + 'somesome' + Central.adapter.process().env.AUTH_SALT);
+    expect(verify).toBe(true);
 
     //retype password match
     const c6 = new ControllerAccountPassword({ headers: {}, body: 'old-password=somesome&new-password=hello&retype-password=hello', cookies: {}, session });
