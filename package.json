@@ -37,5 +37,7 @@
     "url": "https://github.com/LionRockJS/adapter-auth/issues"
   },
   "homepage": "https://github.com/LionRockJS/adapter-auth#readme",
-  "dependencies": {}
+  "dependencies": {
+    "argon2": "^0.41.1"
+  }
 }

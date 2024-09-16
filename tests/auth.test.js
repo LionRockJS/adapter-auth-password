@@ -53,6 +53,12 @@ describe('password auth', () => {
     expect(c.state.get(Controller.STATE_FULL_ACTION_NAME)).toBe('action_index');
   });
 
+  test('hash function', async()=>{
+    const hash = await IdentifierPassword.hash(1, 'alice', 'hello');
+    expect(hash).toBeDefined();
+    expect(typeof hash).toBe('string');
+  })
+
   test('register', async () =>{
     const c = new ControllerRegister({ headers: {}, body: 'username=alice&password=hello', cookies: {} });
     await c.execute('register_post');
@@ -63,8 +69,10 @@ describe('password auth', () => {
 
     const database = c.state.get(ControllerMixinDatabase.DATABASES).get('admin');
     const identifier = await ORM.readBy(ModelIdentifierPassword, 'name', ['alice'], {database});
+    const hash = await IdentifierPassword.hash(user.id, 'alice', 'hello');
+    console.log(identifier, hash);
     expect(identifier.name).toBe('alice');
-    expect(identifier.hash).toBe(IdentifierPassword.hash(user.id, 'alice', 'hello'));
+    expect(identifier.hash).toBe(hash);
   });
 
   test('register with first name', async () =>{
