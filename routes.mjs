@@ -1,4 +1,4 @@
-import { RouteList } from '@lionrockjs/central';
+import { RouteList } from '@lionrockjs/router';
 
 RouteList.add('/account/password/change', 'controller/AccountPassword');
 RouteList.add('/account/password/change', 'controller/AccountPassword', 'change_password_post', 'POST');
