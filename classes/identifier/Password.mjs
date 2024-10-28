@@ -17,7 +17,7 @@ export default class IdentifierPassword extends Identifier {
     return postData.username;
   }
 
-  static async registerFilter(identifier, postData) {
+  static async registerFilter(identifier, postData, state) {
     IdentifierPassword.matchRetypePassword(postData.password, postData['retype-password']);
     const hash = await IdentifierPassword.hash(identifier.user_id, identifier.name, postData.password);
     return {
